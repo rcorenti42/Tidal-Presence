@@ -1,6 +1,6 @@
-use byteorder::{LittleEndian, WriteBytesExt};
-use serde_json::json;
-use std::io::Write;
+use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
+use serde_json::{json, Value};
+use std::io::{Read, Write};
 use std::os::windows::fs::OpenOptionsExt;
 use std::{fs::OpenOptions, io};
 
@@ -26,14 +26,15 @@ impl DiscordClient {
         });
 
         client.send_frame(0, &handshake)?;
+        client.read_frame()?;
 
         Ok(client)
     }
 
-    fn send_frame(&mut self, op: u32, payload: &serde_json::Value) -> io::Result<()> {
+    fn send_frame(&mut self, op: u32, payload: &Value) -> io::Result<()> {
         let data = payload.to_string().into_bytes();
-        let mut header = vec![];
 
+        let mut header = vec![];
         header.write_u32::<LittleEndian>(op)?;
         header.write_u32::<LittleEndian>(data.len() as u32)?;
 
@@ -41,6 +42,21 @@ impl DiscordClient {
         self.pipe.write_all(&data)?;
 
         Ok(())
+    }
+
+    fn read_frame(&mut self) -> io::Result<Value> {
+        let mut header = [0u8; 8];
+        self.pipe.read_exact(&mut header)?;
+
+        let mut header_reader = &header[..];
+        let _op = header_reader.read_u32::<LittleEndian>()?;
+        let len = header_reader.read_u32::<LittleEndian>()?;
+
+        let mut data = vec![0u8; len as usize];
+        self.pipe.read_exact(&mut data)?;
+
+        let json: Value = serde_json::from_slice(&data)?;
+        Ok(json)
     }
 
     pub fn set_activity(
@@ -68,10 +84,12 @@ impl DiscordClient {
                     }
                 }
             },
-            "nonce": "1"
+            "nonce": uuid::Uuid::new_v4().to_string()
         });
 
-        self.send_frame(1, &activity)
+        self.send_frame(1, &activity)?;
+        let _ = self.read_frame();
+        Ok(())
     }
 
     pub fn clear(&mut self) -> io::Result<()> {
@@ -81,9 +99,11 @@ impl DiscordClient {
                 "pid": std::process::id(),
                 "activity": null
             },
-            "nonce": "2"
+            "nonce": uuid::Uuid::new_v4().to_string()
         });
 
-        self.send_frame(1, &payload)
+        self.send_frame(1, &payload)?;
+        let _ = self.read_frame();
+        Ok(())
     }
 }

@@ -20,9 +20,9 @@ struct TrackData {
 
 #[tokio::main]
 async fn main() {
-    println!("Starting WebSocket server on 0.0.0.0:9001");
+    println!("Starting WebSocket server on 0.0.0.0:3000");
 
-    let listener = TcpListener::bind("0.0.0.0:9001")
+    let listener = TcpListener::bind("0.0.0.0:3000")
         .await
         .expect("Failed to bind port");
 
@@ -32,24 +32,48 @@ async fn main() {
     println!("Connected to Discord IPC");
 
     loop {
-        let (stream, _) = listener.accept().await.expect("Accept failed");
-        println!("Android connected");
+        match listener.accept().await {
+            Ok((stream, addr)) => {
+                println!("Android connected: {}", addr);
 
-        let mut ws = accept_async(stream)
-            .await
-            .expect("WebSocket accept failed");
+                let ws = match accept_async(stream).await {
+                    Ok(ws) => ws,
+                    Err(e) => {
+                        println!("WebSocket handshake failed: {}", e);
+                        continue;
+                    }
+                };
 
-        while let Some(msg) = ws.next().await {
-            let msg = msg.expect("WS message error");
+                handle_connection(ws, &mut discord).await;
 
-            if msg.is_text() {
-                if let Ok(data) = serde_json::from_str::<TrackData>(msg.to_text().unwrap()) {
-                    update_presence(&mut discord, data);
-                }
+                println!("Android disconnected");
+            }
+            Err(e) => {
+                println!("Accept error: {}", e);
             }
         }
+    }
+}
 
-        println!("Android disconnected");
+async fn handle_connection(
+    mut ws: tokio_tungstenite::WebSocketStream<tokio::net::TcpStream>,
+    discord: &mut DiscordClient,
+) {
+    while let Some(msg) = ws.next().await {
+        match msg {
+            Ok(msg) => {
+                if msg.is_text() {
+                    match serde_json::from_str::<TrackData>(msg.to_text().unwrap()) {
+                        Ok(data) => update_presence(discord, data),
+                        Err(e) => println!("JSON parse error: {}", e),
+                    }
+                }
+            }
+            Err(e) => {
+                println!("WS error (client likely disconnected): {}", e);
+                break;
+            }
+        }
     }
 }
 
@@ -72,17 +96,19 @@ fn update_presence(client: &mut DiscordClient, data: TrackData) {
     };
 
     let end = if data.playing {
-        Some(start.unwrap() + (data.duration as i64 / 1000))
+        start.map(|s| s + (data.duration as i64 / 1000))
     } else {
         None
     };
 
-    let _ = client.set_activity(
+    if let Err(e) = client.set_activity(
         data.title.as_deref().unwrap_or(""),
         data.artist.as_deref().unwrap_or(""),
         start,
         end,
-    );
+    ) {
+        println!("Discord IPC error: {}", e);
+    }
 
     println!(
         "Updated: {} — {} | playing: {}",
