@@ -4,23 +4,23 @@
 
 ---
 
-A lightwight Rust application that creates a **Discord Rich Presence for TIDAL**.
+Lightweight **Rust application** that displays the currently playing **TIDAL track in Discord Rich Presence**.
 
-The application can receive track data from:
+Playback data can come from:
 - **Local TIDAL desktop playback**
-- **Android TIDAL playback via WebSocket**
+- **Android devices via WebSocket**
 
-This allows Discord to display the currently playing track from **TIDAL Windows or Android**.
+This allows Discord to show your currently playing track from **TIDAL Windows or Android**.
 
 ---
 
 ## Features
 - Discord Rich Presence integration
 - WebSocket server for external devices
-- Compatible with TIDAL Windows
-- Compatible with TIDAL Android
+- Compatible with **TIDAL Windows**
+- Compatible with **TIDAL Android**
 - Real-time playback updates
-- Very low resource usage
+- Extremely lightweight
 
 ---
 
@@ -58,14 +58,15 @@ An Android device running **TIDAL Bridge Android** *(https://github.com/rcorenti
 
 ## Discord Setup
 
-You must create a Discord Developer Application.
+You must create a **Discord Developer Application**.
 
 Steps:
 
 1. Go to the Discord Developer Portal.
 2. Create a new application (recommended name: **TIDAL**).
 3. Copy the **Application ID**.
-4. Replace it in the source code:
+
+Replace the ID in the source code:
 
        const APP_ID: &str = "APP_ID";
 
@@ -73,19 +74,35 @@ Steps:
 
 ## WebSocket Server
 
-The application exposes a WebSocket server.
+The application exposes a WebSocket server used by Android devices.
 
 Exemple:
 
     ws://192.168.1.42:3000
 
-Android devices connect to this server to send playback metadata.
+The Android companion app connects to this endpoint to stream playback metadata.
+
+---
+
+## Build
+
+Install Rust:
+
+    https://rustup.rs
+
+Build:
+
+    cargo build --release
+
+Run:
+
+    cargo run
 
 ---
 
 ## Network Usage
 
-For remote usage (mobile data / external networks), a VPN such as WireGuard is recommended.
+For remote connections (mobile data / external networks), a VPN such as WireGuard is recommended.
 
 Exemple:
 
@@ -99,25 +116,10 @@ Exemple:
 
 ---
 
-## Build
+## Disclaimer
 
-Install Rust:
-
-    https://rustup.rs
-
-Build the project:
-
-    cargo build --release
-
-Run:
-
-    cargo run
+This project is **not affiliated with TIDAL or Discord**.
+It is an independent project created to enable Rich Presence support for TIDAL.
 
 ---
-
-## License
-
-Personal project. Use freely.
-
 ---
-
