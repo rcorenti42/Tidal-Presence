@@ -1,3 +1,5 @@
+![Discord IPC](https://img.shields.io/badge/Discord-IPC-5865F2?logo=discord&logoColor=white) ![WebSocket](https://img.shields.io/badge/WebSocket-real--time-blue) ![Rust](https://img.shields.io/badge/Rust-backend-orange?logo=rust&logoColor=white)
+
 # TIDAL Presence
 
 ---
