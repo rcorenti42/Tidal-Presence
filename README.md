@@ -1,4 +1,7 @@
-![Discord IPC](https://img.shields.io/badge/Discord-IPC-5865F2?logo=discord&logoColor=white) ![WebSocket](https://img.shields.io/badge/WebSocket-real--time-blue) ![Rust](https://img.shields.io/badge/Rust-backend-orange?logo=rust&logoColor=white)
+[![Discord IPC](https://img.shields.io/badge/Discord-IPC-5865F2?logo=discord&logoColor=white)](https://discord.com)
+[![WebSocket](https://img.shields.io/badge/WebSocket-real--time-blue)](https://developer.mozilla.org/fr/docs/Web/API/WebSockets_API)
+[![Rust](https://img.shields.io/badge/Rust-backend-orange?logo=rust&logoColor=white)](https://rust-lang.org)
+[![Windows](https://img.shields.io/badge/Platform-Windows-0078D6?logo=windows&logoColor=white)](https://www.microsoft.com/windows)
 
 # TIDAL Presence
 
